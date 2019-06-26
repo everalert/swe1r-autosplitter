@@ -2,7 +2,7 @@
 
 Automatic control script for use in conjunction with the Scriptable Auto Splitter component for LiveSplit when timing Star Wars Episode I Racer speedruns on PC.
 
-#### Features
+### Features
 
 * Auto Start on file open.
 * Auto Split on race completion.
@@ -36,19 +36,21 @@ At this stage, the autosplitter should be ready for real-time timing of most run
 * The timer will SPLIT when completing a race while placing 3rd or better on Spice Mine Run, Bumpy's Breakers and The Boonta Classic, and when placing 4th or better on any other track. To modify this behaviour for 100% runs, see the Script Options section.
 * The timer will RESET when entering the file select screen.
 
-#### Timing Without Load Screens
+### Timing Without Load Screens
 
 LiveSplit will display a Real Time timer by default. In Displaying a run time that does not count loading screens is achieved by setting the timer to display Game Time. This can be achieved in one of two ways:
 
 1. Set a Timer or Detailed Timer component's Timing Method to Game Time: 
+
 ![Timer Component Settings](https://raw.githubusercontent.com/everalert/swe1r-autosplitter/master/img/use-gametime-timer.png)
 
 2. Set a Timer or Detailed Timer component's Timing Method to Current Timing Method, and have LiveSplit compare against Game Time:
+
 ![Comparing Against Game Time](https://raw.githubusercontent.com/everalert/swe1r-autosplitter/master/img/use-gametime-comparison.png)
 
 By default, the script detects load screens by checking whether the game increments its frame counter. As a side effect, any time spent tabbed out of the game will also be removed from the Game Time timer. It is recommended that the Experimental Load Removal option is enabled (see the Script Options section), which will attempt to include this time.
 
-#### Script Options
+### Script Options
 
 LiveSplit allows you to toggle automatic Starting, Splitting and Resetting of timers for all autosplitters. In addition, this script also comes with the following advanced options:
 
