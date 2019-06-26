@@ -1,5 +1,7 @@
 /*
-	Star Wars Episode I Racer (PC) Autosplitter v0.4.2
+	Star Wars Episode I Racer (PC) Autosplitter v0.5 by Galeforce
+
+	Official autosplitter of the Star Wars Racer speedrun community.
 
 	features
 	- auto start on file open
@@ -7,16 +9,13 @@
 	- auto split on crossing finish line based on race placement
 	  - option to toggle regular or 100% race win conditions
 	- load time removal (use livesplit "game time")
-	  - option to use experimental, potentially more robus load time removal method
+	  - option to use experimental, potentially more robust load time removal method
 	- toggle for in-game race time as livesplit "game time" 
 	- dynamically update timer refresh rate to sync with in-game frametime
 	- displayable variables for use with ASL Var Viewer
 	  - total race in-game time
 	  - current race in-game time
 	  - overheat count
-	  - underheat count
-	  - underheat timer (excl. start of race)
-	  - underheat full timer (all time spent fully cooled)
 	  - death count
 
 	to display custom variables in livesplit
@@ -28,7 +27,6 @@
 	future
 	- confirm effectiveness of new load time removal
 	- real time no loads as displayable variable
-	- option to remove death-related undercooling from undercool counter and timer
 	- cd version support?
 */
 
@@ -56,15 +54,15 @@ state("SWEP1RCR")
 startup
 {
 	settings.Add("ASset",true,"Autosplitter Settings");
-	  settings.Add("useReqWin",false,"Require 1st place","ASset");
+	  settings.Add("useReqWin",false,"Require 1st Place","ASset");
 	  settings.SetToolTip("useReqWin","e.g. for 100%; turning off will require 3rd for SMR/BB/BEC and otherwise 4th.");
-	  settings.Add("useRTNL",true,"Load screens not timed","ASset");
-	  settings.SetToolTip("useRTNL","Display Real-Time without loads as LiveSplit 'game time' instead of in-game race times.");
-	    settings.Add("useExRTNL",false,"Use experimental load removal method","useRTNL");
+	  settings.Add("useRTNL",true,"Game Time Removes Loads","ASset");
+	  settings.SetToolTip("useRTNL","Display Real-Time without loads as LiveSplit 'Game Time' instead of in-game race times.");
+	    settings.Add("useExRTNL",false,"Experimental Load Removal","useRTNL");
 	    settings.SetToolTip("useExRTNL","Attempt to account for game window focus when calculating RT No Loads (not thoroughly tested).");
-	settings.Add("ASLVV",true,"Viewable Information");
-	  settings.Add("tglUHT",false,"Underheat time only counted after first race boost","ASLVV");
-	  settings.SetToolTip("tglUHT","If disabled, timer starts from the first time you are able to charge boost plus 1 second.");
+	//settings.Add("ASLVV",true,"Viewable Information");
+	//  settings.Add("tglUHT",false,"Underheat time only counted after first race boost","ASLVV");
+	//  settings.SetToolTip("tglUHT","If disabled, timer starts from the first time you are able to charge boost plus 1 second.");
 	//settings.Add("tglUHD",false,"Underheat metrics count deaths","ASLVV");
 	//settings.SetToolTip("tglUHD","Underheat Counter and Underheat Timer include instances of underheating while crashed or respawning.");
 	//settings.Add("igtReal",true,"Load time removal overwrites RT instead of IGT (allows recording both RT No Loads and real IGT at the expense of pure RT)");
@@ -75,23 +73,23 @@ startup
 	vars.viewableTotalRaceInGameTime = "0.000";
 	//vars.viewableRealTimeNoLoads = "-";
 	vars.viewableOverheatCounter = "-";
-	vars.viewableUnderheatCounter = "-";
-	vars.viewableUnderheatTime = "0.000";
-	vars.viewableUnderheatFullTime = "0.000";
+	//vars.viewableUnderheatCounter = "-";
+	//vars.viewableUnderheatTime = "0.000";
+	//vars.viewableUnderheatFullTime = "0.000";
 	vars.viewableDeathCounter = "-";
 
 	// config for ASLVV
 	vars.fmtVRIGT = "s\\.fff";
 	vars.fmtVTRIGT = "s\\.fff";
-	vars.fmtVUHT = "s\\.fff";
-	vars.fmtVUHFT = "s\\.fff";
+	//vars.fmtVUHT = "s\\.fff";
+	//vars.fmtVUHFT = "s\\.fff";
 	vars.vvOHC = 0;
-	vars.vvUHC = 0;
-	vars.vvUHTs = 3600;
-	vars.vvUHTt = 0;
-	vars.vvUHTrdy = false;
-	vars.vvUHFTs = 3600;
-	vars.vvUHFTt = 0;
+	//vars.vvUHC = 0;
+	//vars.vvUHTs = 3600;
+	//vars.vvUHTt = 0;
+	//vars.vvUHTrdy = false;
+	//vars.vvUHFTs = 3600;
+	//vars.vvUHFTt = 0;
 	vars.vvDC = 0;
 	
 	// autosplitter-related
@@ -110,43 +108,43 @@ update
 	if (current.inRace==1 && old.inRace==0) {
 		vars.inRace = 1;
 		vars.viewableRaceInGameTime = "0.000";
-		vars.vvUHTrdy = false;
-		vars.vvUHTs = 3600;
-		vars.vvUHFTs = 0;
+		//vars.vvUHTrdy = false;
+		//vars.vvUHTs = 3600;
+		//vars.vvUHFTs = 0;
 	}
 	
 	// asl var viewer-related
 	vars.vvDC = ((current.podFlags2&(1<<6))!=0 && (old.podFlags2&(1<<6))==0)?++vars.vvDC:vars.vvDC;
 	vars.vvOHC = (vars.inRace==1 && current.podHeat==0 && old.podHeat>0 && (current.podFlags2&(1<<6))==0)?++vars.vvOHC:vars.vvOHC;
-	if (vars.inRace==1 && (current.podFlags8&(1<<1))==0 && current.podHeat==100 && old.podHeat<100) {
-		vars.vvUHTs = current.raceTime;
-		vars.vvUHFTs = current.raceTime;
-		++vars.vvUHC;
-	}
-	if (!vars.vvUHTrdy && vars.inRace==1 && (current.podFlags8&(1<<1))==0 && (current.podFlags3&(1<<5))!=0 && (old.podFlags3&(1<<5))==0) {
-		vars.vvUHTrdy = true;
-		if (!settings["tglUHT"]) {
-			vars.vvUHTs = current.raceTime+1;
-			//++vars.vvUHC;
-		}
-	}
-	if ((vars.inRace==1 && current.podHeat<100 && old.podHeat==100) || ((current.podFlags8&(1<<1))!=0 && (old.podFlags8&(1<<1))==0) || (current.inRace==0 && old.inRace==1 && vars.inRace!=0)) {
-		if (vars.vvUHTs<=current.raceTime) {
-			vars.vvUHTt += (current.raceTime-vars.vvUHTs);
-			vars.vvUHTs = 3600;
-			vars.fmtVUHT = (vars.vvUHTt>3600)?"h\\:mm\\:ss\\.fff":((vars.vvUHTt>60)?"m\\:ss\\.fff":"s\\.fff");
-		}
-		if (vars.vvUHFTs<=current.raceTime) {
-			vars.vvUHFTt += (current.raceTime-vars.vvUHFTs);
-			vars.vvUHFTs = 3600;
-			vars.fmtVUHFT = (vars.vvUHFTt>3600)?"h\\:mm\\:ss\\.fff":((vars.vvUHFTt>60)?"m\\:ss\\.fff":"s\\.fff");
-		}
-	}
+	//if (vars.inRace==1 && (current.podFlags8&(1<<1))==0 && current.podHeat==100 && old.podHeat<100) {
+	//	vars.vvUHTs = current.raceTime;
+	//	vars.vvUHFTs = current.raceTime;
+	//	++vars.vvUHC;
+	//}
+	//if (!vars.vvUHTrdy && vars.inRace==1 && (current.podFlags8&(1<<1))==0 && (current.podFlags3&(1<<5))!=0 && (old.podFlags3&(1<<5))==0) {
+	//	vars.vvUHTrdy = true;
+	//	if (!settings["tglUHT"]) {
+	//		vars.vvUHTs = current.raceTime+1;
+	//		//++vars.vvUHC;
+	//	}
+	//}
+	//if ((vars.inRace==1 && current.podHeat<100 && old.podHeat==100) || ((current.podFlags8&(1<<1))!=0 && (old.podFlags8&(1<<1))==0) || (current.inRace==0 && old.inRace==1 && vars.inRace!=0)) {
+	//	if (vars.vvUHTs<=current.raceTime) {
+	//		vars.vvUHTt += (current.raceTime-vars.vvUHTs);
+	//		vars.vvUHTs = 3600;
+	//		vars.fmtVUHT = (vars.vvUHTt>3600)?"h\\:mm\\:ss\\.fff":((vars.vvUHTt>60)?"m\\:ss\\.fff":"s\\.fff");
+	//	}
+	//	if (vars.vvUHFTs<=current.raceTime) {
+	//		vars.vvUHFTt += (current.raceTime-vars.vvUHFTs);
+	//		vars.vvUHFTs = 3600;
+	//		vars.fmtVUHFT = (vars.vvUHFTt>3600)?"h\\:mm\\:ss\\.fff":((vars.vvUHFTt>60)?"m\\:ss\\.fff":"s\\.fff");
+	//	}
+	//}
 	vars.viewableDeathCounter = (vars.vvDC>0)?vars.vvDC:"-";
 	vars.viewableOverheatCounter = (vars.vvOHC>0)?vars.vvOHC:"-";
-	vars.viewableUnderheatCounter = (vars.vvUHC>0)?vars.vvUHC:"-";
-	vars.viewableUnderheatTime = TimeSpan.FromSeconds(vars.vvUHTt+((vars.vvUHTs<=current.raceTime)?current.raceTime-vars.vvUHTs:0)).ToString(vars.fmtVUHT);
-	vars.viewableUnderheatFullTime = TimeSpan.FromSeconds(vars.vvUHFTt+((vars.vvUHFTs<=current.raceTime)?current.raceTime-vars.vvUHFTs:0)).ToString(vars.fmtVUHFT);
+	//vars.viewableUnderheatCounter = (vars.vvUHC>0)?vars.vvUHC:"-";
+	//vars.viewableUnderheatTime = TimeSpan.FromSeconds(vars.vvUHTt+((vars.vvUHTs<=current.raceTime)?current.raceTime-vars.vvUHTs:0)).ToString(vars.fmtVUHT);
+	//vars.viewableUnderheatFullTime = TimeSpan.FromSeconds(vars.vvUHFTt+((vars.vvUHFTs<=current.raceTime)?current.raceTime-vars.vvUHFTs:0)).ToString(vars.fmtVUHFT);
 }
 
 isLoading
@@ -205,21 +203,21 @@ start
 	vars.viewableTotalRaceInGameTime = "0.000";
 	//vars.viewableRealTimeNoLoads = "-";
 	vars.viewableOverheatCounter = "-";
-	vars.viewableUnderheatCounter = "-";
-	vars.viewableUnderheatTime = "0.000";
-	vars.viewableUnderheatFullTime = "0.000";
+	//vars.viewableUnderheatCounter = "-";
+	//vars.viewableUnderheatTime = "0.000";
+	//vars.viewableUnderheatFullTime = "0.000";
 	vars.viewableDeathCounter = "-";
 	vars.fmtVRIGT = "s\\.fff";
 	vars.fmtVTRIGT = "s\\.fff";
-	vars.fmtVUHT = "s\\.fff";
-	vars.fmtVUHFT = "s\\.fff";
+	//vars.fmtVUHT = "s\\.fff";
+	//vars.fmtVUHFT = "s\\.fff";
 	vars.vvOHC = 0;
-	vars.vvUHC = 0;
-	vars.vvUHTs = 3600;
-	vars.vvUHTt = 0;
-	vars.vvUHTrdy = false;
-	vars.vvUHFTs = 3600;
-	vars.vvUHFTt = 0;
+	//vars.vvUHC = 0;
+	//vars.vvUHTs = 3600;
+	//vars.vvUHTt = 0;
+	//vars.vvUHTrdy = false;
+	//vars.vvUHFTs = 3600;
+	//vars.vvUHFTt = 0;
 	vars.vvDC = 0;
 
 	// autosplitter-related
@@ -229,31 +227,3 @@ start
 
 	return (current.sceneId==60);
 }
-
-/* tracks
-	0	BTC
-	16	MGS
-	2	BWR
-	6	AC
-	22	M100
-	19	Ven
-	17	SMR
-	7	SC
-	3	HG
-	23	DD
-	9	SR
-	18	ZC
-	12	BC
-	8	BB
-	20	Exe
-	24	SL
-	13	GVG
-	4	AMR
-	10	DR
-	14	FMR
-	1	BEC
-	5	APC
-	11	Aby
-	21	Gnt
-	15	Inf
-*/
