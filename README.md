@@ -26,7 +26,7 @@ In the LiveSplit Layout Editor, add the Scriptable Auto Splitter component (Add 
 
 ![Adding the Scriptable Auto Splitter component](https://raw.githubusercontent.com/everalert/swe1r-autosplitter/master/img/add-autosplitter.png)
 
-Then open Layout Settings, and select the Scriptable Auto Splitter tab. Under Script Path, click "Browse..." and navigate to "swe1r-autosplitter.asl", and click "Open" to add the script to the component.
+Then open Layout Settings, and select the Scriptable Auto Splitter tab. Under Script Path, click "Browse..." and navigate to "swe1r.asl", and click "Open" to add the script to the component.
 
 ![Click this button to add the script](https://raw.githubusercontent.com/everalert/swe1r-autosplitter/master/img/add-script.png)
 
