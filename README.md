@@ -86,7 +86,7 @@ Names of variables that have been designed for use with this component begin wit
 
 ## Author
 
-**Galeforce** (aka **EVAL**)
+**Galeforce** (aka EVAL)
 * Discord - Galeforce#3296
 * [Twitter](https://twitter.com/everalert)
 * [Twitch](https://twitch.tv/everalert)
