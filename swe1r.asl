@@ -155,7 +155,7 @@ isLoading
 {
 	// actual ingame isLoading bool unknown, detect loading based on frame counter with small dynamic buffer to account for framerate discrepancies
 	if (settings["useRTNL"]) {
-		vars.loadBufferSize = Math.Floor(old.frmLen/current.frmLen)+1;
+		vars.loadBufferSize = Math.Floor(old.frmLen/current.frmLen)+2;
 		vars.loadBuffer = current.frmCnt == old.frmCnt ? vars.loadBuffer + 1 : vars.loadBuffer - 1 ;
 		if (vars.loadBuffer <= 0) { vars.loading = 0; vars.loadBuffer = 0; }
 		if (vars.loadBuffer >= vars.loadBufferSize) { vars.loading = 1; vars.loadBuffer = vars.loadBufferSize; }
