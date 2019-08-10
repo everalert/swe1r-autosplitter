@@ -1,5 +1,5 @@
 /*
-	Star Wars Episode I Racer (PC) Autosplitter v0.5 by Galeforce
+	Star Wars Episode I Racer (PC) Autosplitter v0.5.1 by Galeforce
 
 	Official autosplitter of the Star Wars Racer speedrun community.
 
@@ -47,7 +47,8 @@ state("SWEP1RCR")
 	int frmCnt: 0xA22A30;
 	double frmLen: 0xA22A40;
 	short sceneId : 0xA9BA62;
-	byte hwndFoc : 0xB9544, 0x16C340; // (0x020000->0x18C340) not thoroughly tested, possibility that goal address is not only written on focus change, and that ad hoc fake pointer path is not static
+	//byte hwndFoc : 0xB9544, 0x16C340; // (0x020000->0x18C340) not thoroughly tested, possibility that goal address is not only written on focus change, and that ad hoc fake pointer path is not static
+	byte gameTabbedOut : 0x10CB64; // actual ingame variable for tabbing out
 	string17 menTxt1 : 0xA2C380;
 }
 
@@ -58,8 +59,8 @@ startup
 	  settings.SetToolTip("useReqWin","e.g. for 100%; turning off will require 3rd for SMR/BB/BEC and otherwise 4th.");
 	  settings.Add("useRTNL",true,"Game Time Removes Loads","ASset");
 	  settings.SetToolTip("useRTNL","Display Real-Time without loads as LiveSplit 'Game Time' instead of in-game race times.");
-	    settings.Add("useExRTNL",false,"Experimental Load Removal","useRTNL");
-	    settings.SetToolTip("useExRTNL","Attempt to account for game window focus when calculating RT No Loads (not thoroughly tested).");
+	    settings.Add("useTabRTNL",false,"Game Time Removes Unfocused Time","useRTNL");
+	    settings.SetToolTip("useTabRTNL","Closing or tabbing out of the game also stops the Game Time timer.");
 	//settings.Add("ASLVV",true,"Viewable Information");
 	//  settings.Add("tglUHT",false,"Underheat time only counted after first race boost","ASLVV");
 	//  settings.SetToolTip("tglUHT","If disabled, timer starts from the first time you are able to charge boost plus 1 second.");
@@ -98,6 +99,9 @@ startup
 	vars.gt = 0;
 	vars.gtAdd = 0;
 	vars.inRace = 0;
+	vars.loadBuffer = 0;
+	vars.loadBufferSize = 0;
+	vars.loading = 0;
 	refreshRate = 24; // starting point only, calculated on the fly to accommodate RTSS
 }
 
@@ -149,13 +153,13 @@ update
 
 isLoading
 {
-	// replace IGT with RT No Loads based on setting
+	// actual ingame isLoading bool unknown, detect loading based on frame counter with small dynamic buffer to account for framerate discrepancies
 	if (settings["useRTNL"]) {
-		if (settings["useExRTNL"]) {
-			return (current.frmCnt==old.frmCnt && current.hwndFoc==16);
-		} else {
-			return (current.frmCnt == old.frmCnt);
-		}
+		vars.loadBufferSize = Math.Floor(old.frmLen/current.frmLen)+1;
+		vars.loadBuffer = current.frmCnt == old.frmCnt ? vars.loadBuffer + 1 : vars.loadBuffer - 1 ;
+		if (vars.loadBuffer <= 0) { vars.loading = 0; vars.loadBuffer = 0; }
+		if (vars.loadBuffer >= vars.loadBufferSize) { vars.loading = 1; vars.loadBuffer = vars.loadBufferSize; }
+		return !settings["useTabRTNL"] ? vars.loading > 0 && current.gameTabbedOut == 0 : vars.loading > 0;
 	} else {
 		return true;
 	}
@@ -182,7 +186,7 @@ gameTime
 
 reset
 {
-	return (current.sceneId!=60 && current.menTxt1=="~F6Current Player");
+	return (current.menTxt1 == "~F6Current Player" || current.menTxt1 == "~F6~sSingle Playe");
 }
 
 split
@@ -224,6 +228,8 @@ start
 	vars.gt = 0;
 	vars.gtAdd = 0;
 	vars.inRace = 0;
+	vars.loadBuffer = 0;
+	vars.loadBufferSize = 0;
 
-	return (current.sceneId==60);
+	return (current.sceneId == 60 && current.menTxt1 != "~F6Current Player" && current.menTxt1 != "~F6~sSingle Playe");
 }

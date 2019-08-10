@@ -58,7 +58,7 @@ LiveSplit allows you to toggle automatic Starting, Splitting and Resetting of ti
 | - | - |
 | Require 1st Place | The timer will not split unless the player wins the race. |
 | Game Time Removes Loads | LiveSplit's Game Time timer will display real-time with load screen time excluded. When this option is disabled, Game Time will only include in-game race times. |
-| Experimental Load Removal | Attempts to detect when the game window is not active, in order to not exclude this time from the load-removed timer. Requires "Game Time Removes Loads." |
+| Game Time Removes Unfocused Time | Time in which the game is not active (when closed, tabbed out, etc.) is also removed from the Game Time comparison. Requires "Game Time Removes Loads." |
 
 The recommended settings for 100% runs are as follows:
 
