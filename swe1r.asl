@@ -42,6 +42,7 @@ state("SWEP1RCR")
 	byte selTrk : 0xBFDB8, 0x5D;
 	//byte selCct : 0xBFDB8, 0x5E;
 	//byte selPod : 0xBFDB8, 0x73;
+    byte levelEngaged: 0xEB448, 0x238;
 	byte inRace : 0xA9BB81;
 	//byte inTournament : 0x10C450; //1=tourney,0=freeplay
 	int frmCnt: 0xA22A30;
@@ -57,6 +58,8 @@ startup
 	settings.Add("ASset",true,"Autosplitter Settings");
 	  settings.Add("useReqWin",false,"Require 1st Place","ASset");
 	  settings.SetToolTip("useReqWin","e.g. for 100%; turning off will require 3rd for SMR/BB/BEC and otherwise 4th.");
+	  settings.Add("startRaceTrig",false,"Start timer at 'Start Race' select","ASset");
+	  settings.SetToolTip("startRaceTrig","Timer will start when selecting Start Race instead of at file select.");
 	  settings.Add("useRTNL",true,"Game Time Removes Loads","ASset");
 	  settings.SetToolTip("useRTNL","Display Real-Time without loads as LiveSplit 'Game Time' instead of in-game race times.");
 	    settings.Add("useTabRTNL",false,"Game Time Removes Unfocused Time","useRTNL");
@@ -231,5 +234,9 @@ start
 	vars.loadBuffer = 0;
 	vars.loadBufferSize = 0;
 
+    // starts timer at "Start Race" when setting is enabled
+    if (settings["startRaceTrig"]) {
+        return current.levelEngaged == 1 && old.levelEngaged == 0;
+    }
 	return (current.sceneId == 60 && current.menTxt1 != "~F6Current Player" && current.menTxt1 != "~F6~sSingle Playe");
 }
